@@ -42,7 +42,7 @@ char *salt_and_encrypted = "$6$AS$kCadGR45uq3cFGdm9aBLOsRG7xv6jhL13JAQ222aTq.Y9l
 */
 
 void *threadfunction(void *ptr){
-  int x = (int *)ptr;
+  int x = *((int *)ptr);
   int y, z;
   
   char salt[7];
@@ -51,18 +51,18 @@ void *threadfunction(void *ptr){
   
   substr(salt, salt_and_encrypted, 0, 6);
   
-  //printf("trying %c\n", x);
+  printf("trying %c\n", x);
   
   for(y='A'; y<='Z'; y++){
       //printf("trying %c%c\n", x, y);
       for(z=0; z<=99; z++){
         sprintf(plain, "%c%c%02d", x, y, z);
-        //printf("%s\n", plain);
-        enc = (char *) crypt(plain, salt);
+        
+	enc = (char *) crypt(plain, salt);
         count++;
         if(strcmp(salt_and_encrypted, enc) == 0){
 	    printf("#%-8d%s %s\n", count, plain, enc);
-	    return;
+	    return NULL;
         } 
       }
     }
@@ -74,8 +74,12 @@ void crack(){
   pthread_t threads[26];
   int i=0;
   
-  for(x='A'; x<='Z'; x++){
-    pthread_create(&threads[i], NULL, threadfunction, (void *) x);
+  for(x='A'; x<='Z'; x++) {
+    int *arg = malloc(sizeof(*arg));
+    
+    *arg = x;
+    
+    pthread_create(&threads[0], NULL, threadfunction, arg);
     i++;
   }
   
